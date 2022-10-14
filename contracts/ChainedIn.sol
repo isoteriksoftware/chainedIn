@@ -209,8 +209,8 @@ contract ChainedIn {
     function addCertification(
         uint256 userId,
         string calldata url,
-        string calldata issuedOn,
-        string calldata validTill,
+        string memory issuedOn,
+        string memory validTill,
         string calldata name,
         string calldata issuer,
         uint256 linkedSkillId
