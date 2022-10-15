@@ -122,13 +122,13 @@ contract ChainedIn {
     function login(string calldata email)
         external
         view
-        returns (string memory accountType, uint256 userId)
+        returns (AccountType accountType, uint256 userId)
     {
         if (msg.sender != emailToAddress[email]) {
             revert ChainedIn__AuthenticationFailed();
         }
 
-        accountType = isCompany[msg.sender] ? "company" : "user";
+        accountType = isCompany[msg.sender] ? AccountType.CompanyAccount : AccountType.UserAccount;
         userId = addressToId[msg.sender];
     }
 
