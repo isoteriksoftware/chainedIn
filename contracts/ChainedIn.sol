@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity 0.8.8;
 
+error ChainedIn__UserExists();
+error ChainedIn__AuthenticationFailed();
+error ChainedIn__Unauthorized();
+error ChainedIn__UnauthorizedApprover();
+error ChainedIn__MustBeCompany();
+error ChainedIn__EmployeeNotInCompany();
+error ChainedIn__EmployeeAlreadyManager();
+
 contract ChainedIn {
     struct Company {
         uint256 id;
@@ -55,13 +63,10 @@ contract ChainedIn {
         uint256[] endorsements;
     }
 
-    error ChainedIn__UserExists();
-    error ChainedIn__AuthenticationFailed();
-    error ChainedIn__Unauthorized();
-    error ChainedIn__UnauthorizedApprover();
-    error ChainedIn__MustBeCompany();
-    error ChainedIn__EmployeeNotInCompany();
-    error ChainedIn__EmployeeAlreadyManager();
+    enum AccountType {
+        UserAccount,
+        CompanyAccount
+    }
 
     Company[] public companies;
     User[] public employees;
@@ -86,7 +91,7 @@ contract ChainedIn {
     function signUp(
         string calldata email,
         string calldata name,
-        string calldata accountType
+        AccountType accountType
     ) external {
         if (emailToAddress[email] != address(0)) {
             revert ChainedIn__UserExists();
@@ -94,7 +99,7 @@ contract ChainedIn {
 
         emailToAddress[email] = msg.sender;
 
-        if (compareString(accountType, "user")) {
+        if (accountType == AccountType.UserAccount) {
             User storage user = employees.push();
             user.name = name;
             user.id = employees.length - 1;
@@ -114,12 +119,17 @@ contract ChainedIn {
         }
     }
 
-    function login(string calldata email) external view returns (string memory) {
+    function login(string calldata email)
+        external
+        view
+        returns (string memory accountType, uint256 userId)
+    {
         if (msg.sender != emailToAddress[email]) {
             revert ChainedIn__AuthenticationFailed();
         }
 
-        return isCompany[msg.sender] ? "company" : "user";
+        accountType = isCompany[msg.sender] ? "company" : "user";
+        userId = addressToId[msg.sender];
     }
 
     function updateWalletAddress(string calldata email, address newAddress) external {
