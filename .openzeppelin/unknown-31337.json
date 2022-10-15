@@ -1,0 +1,405 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "txHash": "0xce74a1f7650cf3899ed57b5618192bcaea17844219795e31991dea1fa0dec7a5"
+  },
+  "proxies": [
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0xba00c1365085961c9ac60ca4503475f6a7c918e7fd8db4eac7189041769d4162",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "dbf28d93bbe47c986594f5c9da0d86fec83625f9760d403e3172bf9b593e55ea": {
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "txHash": "0x5311dc3deae61517557377107089952855b599f34d2c07a89153d96d0aedd889",
+      "layout": {
+        "solcVersion": "0.8.8",
+        "storage": [
+          {
+            "label": "companies",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_array(t_struct(Company)31_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:71"
+          },
+          {
+            "label": "employees",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_struct(User)52_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:72"
+          },
+          {
+            "label": "certifications",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_array(t_struct(Certificate)78_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:73"
+          },
+          {
+            "label": "endorsements",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_array(t_struct(Endorsement)85_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:74"
+          },
+          {
+            "label": "skills",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_array(t_struct(Skill)98_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:75"
+          },
+          {
+            "label": "experiences",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_array(t_struct(Experience)65_storage)dyn_storage",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:76"
+          },
+          {
+            "label": "emailToAddress",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_string_memory_ptr,t_address)",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:78"
+          },
+          {
+            "label": "addressToId",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:79"
+          },
+          {
+            "label": "isCompany",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "ChainedIn",
+            "src": "contracts/ChainedIn.sol:80"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_struct(Certificate)78_storage)dyn_storage": {
+            "label": "struct ChainedIn.Certificate[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(Company)31_storage)dyn_storage": {
+            "label": "struct ChainedIn.Company[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(Endorsement)85_storage)dyn_storage": {
+            "label": "struct ChainedIn.Endorsement[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(Experience)65_storage)dyn_storage": {
+            "label": "struct ChainedIn.Experience[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(Skill)98_storage)dyn_storage": {
+            "label": "struct ChainedIn.Skill[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_struct(User)52_storage)dyn_storage": {
+            "label": "struct ChainedIn.User[]",
+            "numberOfBytes": "32"
+          },
+          "t_array(t_uint256)dyn_storage": {
+            "label": "uint256[]",
+            "numberOfBytes": "32"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_address)": {
+            "label": "mapping(string => address)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Certificate)78_storage": {
+            "label": "struct ChainedIn.Certificate",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "url",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "issuedOn",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "validTill",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "issuer",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(Company)31_storage": {
+            "label": "struct ChainedIn.Company",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "walletAddress",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "currentEmployees",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "previousEmployees",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "requestedEmployees",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "5"
+              }
+            ],
+            "numberOfBytes": "192"
+          },
+          "t_struct(Endorsement)85_storage": {
+            "label": "struct ChainedIn.Endorsement",
+            "members": [
+              {
+                "label": "endorserId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "date",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "comment",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              }
+            ],
+            "numberOfBytes": "96"
+          },
+          "t_struct(Experience)65_storage": {
+            "label": "struct ChainedIn.Experience",
+            "members": [
+              {
+                "label": "startingDate",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "endingDate",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "role",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "isApproved",
+                "type": "t_bool",
+                "offset": 1,
+                "slot": "3"
+              },
+              {
+                "label": "companyId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(Skill)98_storage": {
+            "label": "struct ChainedIn.Skill",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isVerified",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "certifications",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "endorsements",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(User)52_storage": {
+            "label": "struct ChainedIn.User",
+            "members": [
+              {
+                "label": "id",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "companyId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "numSkill",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "name",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "walletAddress",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "isEmployed",
+                "type": "t_bool",
+                "offset": 20,
+                "slot": "4"
+              },
+              {
+                "label": "isManager",
+                "type": "t_bool",
+                "offset": 21,
+                "slot": "4"
+              },
+              {
+                "label": "skills",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "experiences",
+                "type": "t_array(t_uint256)dyn_storage",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          }
+        }
+      }
+    }
+  }
+}
