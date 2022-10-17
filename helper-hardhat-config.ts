@@ -1,1 +1,1 @@
-export const developmentChains: string[] = ["hardhat", "localhost"];
+export const developmentChains: string[] = ["hardhat", "localhost", "mumbai"];

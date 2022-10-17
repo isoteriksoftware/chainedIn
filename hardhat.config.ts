@@ -13,6 +13,8 @@ const MAINNET_RPC_URL =
     "https://eth-mainnet.alchemyapi.io/v2/your-api-key";
 const POLYGON_MAINNET_RPC_URL =
     process.env.POLYGON_MAINNET_RPC_URL || "https://polygon-mainnet.alchemyapi.io/v2/your-api-key";
+const POLYGON_MUMBAI_RPC_URL =
+    process.env.POLYGON_MUMBAI_RPC_URL || "https://polygon-mainnet.alchemyapi.io/v2/your-api-key";
 const GOERLI_RPC_URL =
     process.env.GOERLI_RPC_URL || "https://eth-goerli.alchemyapi.io/v2/your-api-key";
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
@@ -43,6 +45,12 @@ const config: HardhatUserConfig = {
             accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
             saveDeployments: true,
             chainId: 137,
+        },
+        mumbai: {
+            url: POLYGON_MUMBAI_RPC_URL,
+            accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
+            saveDeployments: true,
+            chainId: 80001,
         },
     },
     etherscan: {
