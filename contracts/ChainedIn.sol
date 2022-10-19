@@ -10,22 +10,39 @@ error ChainedIn__EmployeeNotInCompany();
 error ChainedIn__EmployeeAlreadyManager();
 
 contract ChainedIn {
+    Company[] public companies;
+    User[] public employees;
+    Certificate[] public certifications;
+    Endorsement[] public endorsements;
+    Skill[] public skills;
+    Experience[] public experiences;
+
+    mapping(string => address) public emailToAddress;
+    mapping(address => uint256) public addressToId;
+    mapping(address => bool) public isCompany;
+
+    modifier verifiedUser(uint256 userId) {
+        if (userId != addressToId[msg.sender]) {
+            revert ChainedIn__Unauthorized();
+        }
+        _;
+    }
+
     struct Company {
         uint256 id;
         string name;
         address walletAddress;
         uint256[] currentEmployees;
         uint256[] previousEmployees;
-        uint256[] requestedEmployees;
+        uint256[] unverifiedEmployees;
     }
 
     struct User {
         uint256 id;
         uint256 companyId;
-        uint256 numSkill;
         string name;
         address walletAddress;
-        bool isEmployed;
+        bool isCurrentlyEmployed;
         bool isManager;
         uint256[] skills;
         uint256[] experiences;
@@ -64,28 +81,17 @@ contract ChainedIn {
     }
 
     enum AccountType {
-        UserAccount,
+        EmployeeAccount,
         CompanyAccount
     }
 
-    Company[] public companies;
-    User[] public employees;
-    Certificate[] public certifications;
-    Endorsement[] public endorsements;
-    Skill[] public skills;
-    Experience[] public experiences;
-
-    mapping(string => address) public emailToAddress;
-    mapping(address => uint256) public addressToId;
-    mapping(address => bool) public isCompany;
-
     function initialize() public {
-        User storage johnDoe = employees.push();
-        johnDoe.name = "John Doe";
-        johnDoe.walletAddress = msg.sender;
-        johnDoe.id = 0;
-        johnDoe.skills = new uint256[](0);
-        johnDoe.experiences = new uint256[](0);
+        employees.push();
+        companies.push();
+        experiences.push();
+        certifications.push();
+        endorsements.push();
+        skills.push();
     }
 
     function signUp(
@@ -93,13 +99,13 @@ contract ChainedIn {
         string calldata name,
         AccountType accountType
     ) external {
-        if (emailToAddress[email] != address(0)) {
+        if (emailToAddress[email] != address(0) || addressToId[msg.sender] != 0) {
             revert ChainedIn__UserExists();
         }
 
         emailToAddress[email] = msg.sender;
 
-        if (accountType == AccountType.UserAccount) {
+        if (accountType == AccountType.EmployeeAccount) {
             User storage user = employees.push();
             user.name = name;
             user.id = employees.length - 1;
@@ -114,6 +120,7 @@ contract ChainedIn {
             company.walletAddress = msg.sender;
             company.currentEmployees = new uint256[](0);
             company.previousEmployees = new uint256[](0);
+            company.unverifiedEmployees = new uint256[](0);
             addressToId[msg.sender] = company.id;
             isCompany[msg.sender] = true;
         }
@@ -128,7 +135,9 @@ contract ChainedIn {
             revert ChainedIn__AuthenticationFailed();
         }
 
-        accountType = isCompany[msg.sender] ? AccountType.CompanyAccount : AccountType.UserAccount;
+        accountType = isCompany[msg.sender]
+            ? AccountType.CompanyAccount
+            : AccountType.EmployeeAccount;
         userId = addressToId[msg.sender];
     }
 
@@ -158,10 +167,14 @@ contract ChainedIn {
         experience.role = role;
         experience.endingDate = endingDate;
         employees[userId].experiences.push(experiences.length - 1);
-        companies[companyId].requestedEmployees.push(experiences.length - 1);
+        companies[companyId].unverifiedEmployees.push(experiences.length - 1);
     }
 
-    function approveExperience(uint256 experienceId, uint256 companyId) external {
+    function approveExperience(
+        uint256 experienceId,
+        uint256 companyId,
+        bool isActive
+    ) external {
         if (
             !((isCompany[msg.sender] &&
                 companies[addressToId[msg.sender]].id == experiences[experienceId].companyId) ||
@@ -174,22 +187,42 @@ contract ChainedIn {
 
         uint256 i;
         experiences[experienceId].isApproved = true;
-        for (i = 0; i < companies[companyId].requestedEmployees.length; i++) {
-            if (companies[companyId].requestedEmployees[i] == experienceId) {
-                companies[companyId].requestedEmployees[i] = 0;
+        experiences[experienceId].isActive = isActive;
+
+        // remove this experience from the unverified list
+        for (i = 0; i < companies[companyId].unverifiedEmployees.length; i++) {
+            if (companies[companyId].unverifiedEmployees[i] == experienceId) {
+                companies[companyId].unverifiedEmployees[i] = 0;
                 break;
             }
         }
 
-        for (i = 0; i < companies[companyId].currentEmployees.length; i++) {
-            if (companies[companyId].currentEmployees[i] == 0) {
-                companies[companyId].requestedEmployees[i] = experienceId;
-                break;
+        if (isActive) {
+            // look for any unused slot for the experience
+            for (i = 0; i < companies[companyId].currentEmployees.length; i++) {
+                if (companies[companyId].currentEmployees[i] == 0) {
+                    companies[companyId].currentEmployees[i] = experienceId;
+                    break;
+                }
             }
-        }
 
-        if (i == companies[companyId].currentEmployees.length) {
-            companies[companyId].currentEmployees.push(experienceId);
+            // at this point, if no unused spot was found, we insert a new record
+            if (i == companies[companyId].currentEmployees.length) {
+                companies[companyId].currentEmployees.push(experienceId);
+            }
+        } else {
+            // look for any unused slot for the experience
+            for (i = 0; i < companies[companyId].previousEmployees.length; i++) {
+                if (companies[companyId].previousEmployees[i] == 0) {
+                    companies[companyId].previousEmployees[i] = experienceId;
+                    break;
+                }
+            }
+
+            // at this point, if no unused spot was found, we insert a new record
+            if (i == companies[companyId].currentEmployees.length) {
+                companies[companyId].currentEmployees.push(experienceId);
+            }
         }
     }
 
@@ -223,7 +256,7 @@ contract ChainedIn {
         string memory validTill,
         string calldata name,
         string calldata issuer,
-        uint256 linkedSkillId
+        uint256 skillId
     ) external verifiedUser(userId) {
         Certificate storage certificate = certifications.push();
         certificate.url = url;
@@ -232,7 +265,7 @@ contract ChainedIn {
         certificate.name = name;
         certificate.id = certifications.length - 1;
         certificate.issuer = issuer;
-        skills[linkedSkillId].certifications.push(certificate.id);
+        skills[skillId].certifications.push(certificate.id);
     }
 
     function endorseSkill(
@@ -252,20 +285,5 @@ contract ChainedIn {
                 skills[skillId].isVerified = true;
             }
         }
-    }
-
-    function memcmp(bytes memory a, bytes memory b) internal pure returns (bool) {
-        return (a.length == b.length) && (keccak256(a) == keccak256(b));
-    }
-
-    function compareString(string memory a, string memory b) internal pure returns (bool) {
-        return memcmp(bytes(a), bytes(b));
-    }
-
-    modifier verifiedUser(uint256 userId) {
-        if (userId != addressToId[msg.sender]) {
-            revert ChainedIn__Unauthorized();
-        }
-        _;
     }
 }
