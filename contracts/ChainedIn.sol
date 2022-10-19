@@ -79,7 +79,7 @@ contract ChainedIn {
     mapping(address => uint256) public addressToId;
     mapping(address => bool) public isCompany;
 
-    constructor() {
+    function initialize() public {
         User storage johnDoe = employees.push();
         johnDoe.name = "John Doe";
         johnDoe.walletAddress = msg.sender;
