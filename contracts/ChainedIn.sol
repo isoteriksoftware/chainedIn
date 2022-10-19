@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: SEE LICENSE IN LICENSE
 pragma solidity 0.8.8;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 error ChainedIn__UserExists();
 error ChainedIn__AuthenticationFailed();
 error ChainedIn__Unauthorized();
@@ -9,7 +11,7 @@ error ChainedIn__MustBeCompany();
 error ChainedIn__EmployeeNotInCompany();
 error ChainedIn__EmployeeAlreadyManager();
 
-contract ChainedIn {
+contract ChainedIn is Initializable {
     Company[] public companies;
     User[] public employees;
     Certificate[] public certifications;
@@ -42,7 +44,6 @@ contract ChainedIn {
         uint256 companyId;
         string name;
         address walletAddress;
-        bool isCurrentlyEmployed;
         bool isManager;
         uint256[] skills;
         uint256[] experiences;
@@ -85,7 +86,7 @@ contract ChainedIn {
         CompanyAccount
     }
 
-    function initialize() public {
+    function initialize() public initializer {
         employees.push();
         companies.push();
         experiences.push();
