@@ -180,5 +180,59 @@ import { ChainedIn } from "../../typechain";
                       expect((await chainedIn.employees(1)).companyId).to.equal(1);
                   });
               });
+
+              describe("Company", () => {
+                  beforeEach(async () => {
+                      await expect(
+                          chainedIn.signUp("admin@company.com", "Company", companyAccountType)
+                      ).not.to.be.reverted;
+                  });
+
+                  it("updates company wallet address", async () => {
+                      await expect(
+                          chainedIn.updateWalletAddress(
+                              companyAccountType,
+                              "admin@company.com",
+                              accounts[1].address
+                          )
+                      ).not.to.be.reverted;
+                      expect((await chainedIn.companies(1)).walletAddress).to.be.equal(
+                          accounts[1].address
+                      );
+
+                      await expect(
+                          chainedIn.login("admin@company.com")
+                      ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__AuthenticationFailed");
+                      await expect(chainedIn.connect(accounts[1]).login("admin@company.com")).not.to
+                          .be.reverted;
+                  });
+
+                  it("approves company manager", async () => {
+                      const chainedIn2 = chainedIn.connect(accounts[1]);
+                      await expect(
+                          chainedIn2.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
+
+                      let employee = await chainedIn.employees(1);
+                      assert.equal(employee.isManager, false);
+                      assert.equal(employee.companyId.toString(), "0");
+
+                      await expect(chainedIn2.approveManager(1)).to.be.revertedWithCustomError(
+                          chainedIn2,
+                          "ChainedIn__MustBeCompany"
+                      );
+                      await expect(chainedIn.approveManager(1)).to.be.revertedWithCustomError(
+                          chainedIn2,
+                          "ChainedIn__EmployeeNotInCompany"
+                      );
+
+                      await expect(chainedIn2.setCompany(1, 1)).not.to.be.reverted;
+                      await expect(chainedIn.approveManager(1)).not.to.be.reverted;
+
+                      employee = await chainedIn.employees(1);
+                      assert.equal(employee.isManager, true);
+                      assert.equal(employee.companyId.toString(), "1");
+                  });
+              });
           });
       });
