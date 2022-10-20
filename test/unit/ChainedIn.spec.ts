@@ -1,4 +1,4 @@
-import { deployments, ethers, network } from "hardhat";
+import { deployments, ethers, network, upgrades } from "hardhat";
 import { developmentChains } from "../../helper-hardhat-config";
 import { ChainedIn } from "../../typechain";
 
@@ -8,7 +8,9 @@ import { ChainedIn } from "../../typechain";
           let chainedIn: ChainedIn;
 
           beforeEach(async () => {
-              await deployments.fixture(["chainedin"]);
-              chainedIn = await ethers.getContract("ChainedIn");
+              const factory = await ethers.getContractFactory("ChainedIn");
+              chainedIn = (await upgrades.deployProxy(factory, [], {
+                  initializer: "initialize",
+              })) as ChainedIn;
           });
       });

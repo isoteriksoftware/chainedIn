@@ -10,6 +10,7 @@ error ChainedIn__UnauthorizedApprover();
 error ChainedIn__MustBeCompany();
 error ChainedIn__EmployeeNotInCompany();
 error ChainedIn__EmployeeAlreadyManager();
+error ChainedIn__ExperienceNotForUser();
 
 contract ChainedIn is Initializable {
     Company[] public companies;
@@ -19,9 +20,9 @@ contract ChainedIn is Initializable {
     Skill[] public skills;
     Experience[] public experiences;
 
-    mapping(string => address) public emailToAddress;
-    mapping(address => uint256) public addressToId;
-    mapping(address => bool) public isCompany;
+    mapping(string => address) private emailToAddress;
+    mapping(address => uint256) private addressToId;
+    mapping(address => bool) private isCompany;
 
     modifier verifiedUser(uint256 userId) {
         if (userId != addressToId[msg.sender]) {
@@ -42,6 +43,7 @@ contract ChainedIn is Initializable {
     struct User {
         uint256 id;
         uint256 companyId;
+        uint256 currentActiveExperience;
         string name;
         address walletAddress;
         bool isManager;
@@ -227,6 +229,26 @@ contract ChainedIn is Initializable {
         }
     }
 
+    function setCurrentActiveExperience(uint256 userId, uint256 experienceId)
+        external
+        verifiedUser(userId)
+    {
+        // Make sure this experience belongs to this user
+        uint256 i;
+        for (i = 0; i < employees[userId].experiences.length; i++) {
+            if (employees[userId].experiences[i] == experienceId) break;
+        }
+        if (i == employees[userId].experiences.length) {
+            revert ChainedIn__ExperienceNotForUser();
+        }
+
+        employees[userId].currentActiveExperience = experienceId;
+    }
+
+    function setCompany(uint256 userId, uint256 companyId) external verifiedUser(userId) {
+        employees[userId].companyId = companyId;
+    }
+
     function approveManager(uint256 employeeId) external {
         if (!isCompany[msg.sender]) {
             revert ChainedIn__MustBeCompany();
@@ -286,5 +308,21 @@ contract ChainedIn is Initializable {
                 skills[skillId].isVerified = true;
             }
         }
+    }
+
+    function getCompaniesCount() external view returns (uint256) {
+        return companies.length;
+    }
+
+    function getCompanies() external view returns (Company[] memory) {
+        return companies;
+    }
+
+    function getEmployeesCount() external view returns (uint256) {
+        return employees.length;
+    }
+
+    function getEmployees() external view returns (User[] memory) {
+        return employees;
     }
 }
