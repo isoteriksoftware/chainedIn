@@ -151,6 +151,34 @@ import { ChainedIn } from "../../typechain";
                       await expect(chainedIn.connect(accounts[1]).login("employee@company.com")).not
                           .to.be.reverted;
                   });
+
+                  it("prevents unauthorized wallet address update", async () => {
+                      await expect(
+                          chainedIn
+                              .connect(accounts[1])
+                              .signUp("employee2@company.com", "Employee2", userAccountType)
+                      ).not.to.be.reverted;
+
+                      await expect(
+                          chainedIn
+                              .connect(accounts[1])
+                              .updateWalletAddress(
+                                  userAccountType,
+                                  "employee@company.com",
+                                  accounts[1].address
+                              )
+                      ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__AuthenticationFailed");
+                  });
+
+                  it("updates employee company", async () => {
+                      await expect(
+                          chainedIn
+                              .connect(accounts[1])
+                              .signUp("admin@company.com", "Company", companyAccountType)
+                      ).not.to.be.reverted;
+                      await chainedIn.setCompany(1, 1);
+                      expect((await chainedIn.employees(1)).companyId).to.equal(1);
+                  });
               });
           });
       });

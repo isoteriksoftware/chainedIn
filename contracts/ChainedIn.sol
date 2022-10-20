@@ -11,6 +11,7 @@ error ChainedIn__MustBeCompany();
 error ChainedIn__EmployeeNotInCompany();
 error ChainedIn__EmployeeAlreadyManager();
 error ChainedIn__ExperienceNotForUser();
+error ChainedIn__UnknownCompany();
 
 contract ChainedIn is Initializable {
     Company[] public companies;
@@ -254,6 +255,10 @@ contract ChainedIn is Initializable {
     }
 
     function setCompany(uint256 userId, uint256 companyId) external verifiedUser(userId) {
+        if (companyId >= companies.length) {
+            revert ChainedIn__UnknownCompany();
+        }
+
         employees[userId].companyId = companyId;
     }
 
