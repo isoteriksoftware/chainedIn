@@ -171,6 +171,10 @@ contract ChainedIn is Initializable {
         string calldata role,
         uint256 companyId
     ) external verifiedUser(userId) {
+        if (companyId >= companies.length) {
+            revert ChainedIn__UnknownCompany();
+        }
+
         Experience storage experience = experiences.push();
         experience.companyId = companyId;
         experience.isActive = false;
@@ -337,5 +341,45 @@ contract ChainedIn is Initializable {
 
     function getEmployees() external view returns (User[] memory) {
         return employees;
+    }
+
+    function getCompanyCurrentEmployees(uint256 companyId)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        return companies[companyId].currentEmployees;
+    }
+
+    function getCompanyPreviousEmployees(uint256 companyId)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        return companies[companyId].previousEmployees;
+    }
+
+    function getCompanyUnverifiedEmployees(uint256 companyId)
+        external
+        view
+        returns (uint256[] memory)
+    {
+        return companies[companyId].unverifiedEmployees;
+    }
+
+    function getEmployeeSkills(uint256 userId) external view returns (uint256[] memory) {
+        return employees[userId].skills;
+    }
+
+    function getEmployeeExperiences(uint256 userId) external view returns (uint256[] memory) {
+        return employees[userId].experiences;
+    }
+
+    function getSkillCertifications(uint256 skillId) external view returns (uint256[] memory) {
+        return skills[skillId].certifications;
+    }
+
+    function getSkillEndorsements(uint256 skillId) external view returns (uint256[] memory) {
+        return skills[skillId].endorsements;
     }
 }

@@ -235,4 +235,36 @@ import { ChainedIn } from "../../typechain";
                   });
               });
           });
+
+          describe("Experience management", () => {
+              beforeEach(async () => {
+                  await expect(
+                      chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                  ).not.to.be.reverted;
+                  await expect(
+                      chainedIn
+                          .connect(accounts[1])
+                          .signUp("admin@company.com", "Company", companyAccountType)
+                  ).not.to.be.reverted;
+              });
+
+              it("adds employee experience", async () => {
+                  await expect(
+                      chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 2)
+                  ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__UnknownCompany");
+                  await expect(chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 1)).not.to
+                      .be.reverted;
+
+                  const experiences = await chainedIn.getEmployeeExperiences(1);
+                  assert.equal(experiences.length, 1);
+
+                  const experience = await chainedIn.experiences(experiences[0]);
+                  assert.equal(experience.startingDate, "2020");
+                  assert.equal(experience.endingDate, "2022");
+                  assert.equal(experience.role, "Unit Tester");
+                  assert.equal(experience.companyId.toString(), "1");
+                  assert.equal(experience.isActive, false);
+                  assert.equal(experience.isApproved, false);
+              });
+          });
       });
