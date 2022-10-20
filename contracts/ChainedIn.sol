@@ -237,7 +237,7 @@ contract ChainedIn is Initializable {
 
             // at this point, if no unused spot was found, we insert a new record
             if (i == companies[companyId].currentEmployees.length) {
-                companies[companyId].currentEmployees.push(experienceId);
+                companies[companyId].previousEmployees.push(experienceId);
             }
         }
     }

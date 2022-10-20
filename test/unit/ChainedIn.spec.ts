@@ -255,6 +255,12 @@ import { ChainedIn } from "../../typechain";
                   await expect(chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 1)).not.to
                       .be.reverted;
 
+                  const unverifiedEmployees = await chainedIn.getCompanyUnverifiedEmployees(1);
+                  assert.include(
+                      unverifiedEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+
                   const experiences = await chainedIn.getEmployeeExperiences(1);
                   assert.equal(experiences.length, 1);
 
@@ -265,6 +271,76 @@ import { ChainedIn } from "../../typechain";
                   assert.equal(experience.companyId.toString(), "1");
                   assert.equal(experience.isActive, false);
                   assert.equal(experience.isApproved, false);
+              });
+
+              it("approves active employee experience", async () => {
+                  await expect(chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 1)).not.to
+                      .be.reverted;
+
+                  const chainedIn2 = chainedIn.connect(accounts[1]);
+                  await expect(
+                      chainedIn.approveExperience(1, 1, true)
+                  ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__UnauthorizedApprover");
+                  await expect(chainedIn2.approveExperience(1, 1, true)).not.to.be.reverted;
+
+                  const experience = await chainedIn.experiences(1);
+                  assert.equal(experience.startingDate, "2020");
+                  assert.equal(experience.endingDate, "2022");
+                  assert.equal(experience.role, "Unit Tester");
+                  assert.equal(experience.companyId.toString(), "1");
+                  assert.equal(experience.isActive, true);
+                  assert.equal(experience.isApproved, true);
+
+                  const unverifiedEmployees = await chainedIn.getCompanyUnverifiedEmployees(1);
+                  const currentEmployees = await chainedIn.getCompanyCurrentEmployees(1);
+                  const previousEmployees = await chainedIn.getCompanyPreviousEmployees(1);
+                  assert.notInclude(
+                      unverifiedEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+                  assert.include(
+                      currentEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+                  assert.notInclude(
+                      previousEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+              });
+
+              it("approves inactive employee experience", async () => {
+                  await expect(chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 1)).not.to
+                      .be.reverted;
+
+                  const chainedIn2 = chainedIn.connect(accounts[1]);
+                  await expect(
+                      chainedIn.approveExperience(1, 1, false)
+                  ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__UnauthorizedApprover");
+                  await expect(chainedIn2.approveExperience(1, 1, false)).not.to.be.reverted;
+
+                  const experience = await chainedIn.experiences(1);
+                  assert.equal(experience.startingDate, "2020");
+                  assert.equal(experience.endingDate, "2022");
+                  assert.equal(experience.role, "Unit Tester");
+                  assert.equal(experience.companyId.toString(), "1");
+                  assert.equal(experience.isActive, false);
+                  assert.equal(experience.isApproved, true);
+
+                  const unverifiedEmployees = await chainedIn.getCompanyUnverifiedEmployees(1);
+                  const currentEmployees = await chainedIn.getCompanyCurrentEmployees(1);
+                  const previousEmployees = await chainedIn.getCompanyPreviousEmployees(1);
+                  assert.notInclude(
+                      unverifiedEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+                  assert.notInclude(
+                      currentEmployees.map((e) => e.toString()),
+                      "1"
+                  );
+                  assert.include(
+                      previousEmployees.map((e) => e.toString()),
+                      "1"
+                  );
               });
           });
       });
