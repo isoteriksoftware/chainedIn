@@ -84,7 +84,7 @@ contract ChainedIn is Initializable {
     }
 
     enum AccountType {
-        EmployeeAccount,
+        UserAccount,
         CompanyAccount
     }
 
@@ -108,7 +108,7 @@ contract ChainedIn is Initializable {
 
         emailToAddress[email] = msg.sender;
 
-        if (accountType == AccountType.EmployeeAccount) {
+        if (accountType == AccountType.UserAccount) {
             User storage user = employees.push();
             user.name = name;
             user.id = employees.length - 1;
@@ -138,13 +138,15 @@ contract ChainedIn is Initializable {
             revert ChainedIn__AuthenticationFailed();
         }
 
-        accountType = isCompany[msg.sender]
-            ? AccountType.CompanyAccount
-            : AccountType.EmployeeAccount;
+        accountType = isCompany[msg.sender] ? AccountType.CompanyAccount : AccountType.UserAccount;
         userId = addressToId[msg.sender];
     }
 
-    function updateWalletAddress(string calldata email, address newAddress) external {
+    function updateWalletAddress(
+        AccountType accountType,
+        string calldata email,
+        address newAddress
+    ) external {
         if (msg.sender != emailToAddress[email]) {
             revert ChainedIn__AuthenticationFailed();
         }
@@ -153,6 +155,12 @@ contract ChainedIn is Initializable {
         uint256 id = addressToId[msg.sender];
         addressToId[msg.sender] = 0;
         addressToId[newAddress] = id;
+
+        if (accountType == AccountType.UserAccount) {
+            employees[id].walletAddress = newAddress;
+        } else {
+            companies[id].walletAddress = newAddress;
+        }
     }
 
     function addExperience(

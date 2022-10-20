@@ -1,3 +1,4 @@
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert, expect } from "chai";
 import { BigNumber } from "ethers";
 import { ethers, network, upgrades } from "hardhat";
@@ -8,14 +9,17 @@ import { ChainedIn } from "../../typechain";
     ? describe.skip
     : describe("ChainedIn Unit Tests", () => {
           let chainedIn: ChainedIn;
-          const userAccountType = 0;
-          const companyAccountType = 1;
+          let accounts: SignerWithAddress[];
+          const userAccountType = "0";
+          const companyAccountType = "1";
 
           beforeEach(async () => {
               const factory = await ethers.getContractFactory("ChainedIn");
               chainedIn = (await upgrades.deployProxy(factory, [], {
                   initializer: "initialize",
               })) as ChainedIn;
+
+              accounts = await ethers.getSigners();
           });
 
           describe("Initialization", () => {
@@ -40,14 +44,113 @@ import { ChainedIn } from "../../typechain";
           });
 
           describe("Account creation and authentications", () => {
-              it("creates employee account", async () => {
-                  await expect(
-                      chainedIn.signUp("employee@company.com", "Employee", userAccountType)
-                  ).not.to.be.reverted;
+              describe("Account creation", () => {
+                  it("creates employee account", async () => {
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
 
-                  const employee = await chainedIn.employees(1);
-                  assert.equal(employee.id.toString(), "1");
-                  assert.equal(employee.name, "Employee");
+                      const employee = await chainedIn.employees(1);
+                      assert.equal(employee.id.toString(), "1");
+                      assert.equal(employee.name, "Employee");
+                      assert.equal(employee.walletAddress, accounts[0].address);
+                  });
+
+                  it("creates company account", async () => {
+                      await expect(
+                          chainedIn.signUp("admin@company.com", "Company", companyAccountType)
+                      ).not.to.be.reverted;
+
+                      const company = await chainedIn.companies(1);
+                      assert.equal(company.id.toString(), "1");
+                      assert.equal(company.name, "Company");
+                      assert.equal(company.walletAddress, accounts[0].address);
+                  });
+
+                  it("rejects duplicate emails", async () => {
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee2", userAccountType)
+                      ).to.be.reverted;
+                      await expect(
+                          chainedIn.signUp("admin@company.com", "Company", companyAccountType)
+                      ).to.be.reverted;
+                  });
+              });
+
+              describe("Account authentication", () => {
+                  it("authenticates employee", async () => {
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
+
+                      const authenticationResponse = await chainedIn.login("employee@company.com");
+                      assert.equal(authenticationResponse.accountType.toString(), userAccountType);
+                      assert.equal(authenticationResponse.userId.toString(), "1");
+                  });
+
+                  it("authenticates company", async () => {
+                      await expect(
+                          chainedIn.signUp("admin@company.com", "Company", companyAccountType)
+                      ).not.to.be.reverted;
+
+                      const authenticationResponse = await chainedIn.login("admin@company.com");
+                      assert.equal(
+                          authenticationResponse.accountType.toString(),
+                          companyAccountType
+                      );
+                      assert.equal(authenticationResponse.userId.toString(), "1");
+                  });
+
+                  it("fails employee authentication", async () => {
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
+                      await expect(
+                          chainedIn.login("employe@company.com")
+                      ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__AuthenticationFailed");
+                  });
+
+                  it("fails company authentication", async () => {
+                      await expect(
+                          chainedIn.signUp("admin@company.com", "Company", companyAccountType)
+                      ).not.to.be.reverted;
+                      await expect(chainedIn.login("ad@company.com")).to.be.revertedWithCustomError(
+                          chainedIn,
+                          "ChainedIn__AuthenticationFailed"
+                      );
+                  });
+              });
+          });
+
+          describe("Account management", () => {
+              describe("Employee", () => {
+                  beforeEach(async () => {
+                      await expect(
+                          chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                      ).not.to.be.reverted;
+                  });
+
+                  it("updates wallet address", async () => {
+                      await expect(
+                          chainedIn.updateWalletAddress(
+                              userAccountType,
+                              "employee@company.com",
+                              accounts[1].address
+                          )
+                      ).not.to.be.reverted;
+                      expect((await chainedIn.employees(1)).walletAddress).to.be.equal(
+                          accounts[1].address
+                      );
+
+                      await expect(
+                          chainedIn.login("employee@company.com")
+                      ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__AuthenticationFailed");
+                      await expect(chainedIn.connect(accounts[1]).login("employee@company.com")).not
+                          .to.be.reverted;
+                  });
               });
           });
       });
