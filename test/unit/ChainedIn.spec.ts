@@ -1,6 +1,5 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { assert, expect } from "chai";
-import { BigNumber } from "ethers";
 import { ethers, network, upgrades } from "hardhat";
 import { developmentChains } from "../../helper-hardhat-config";
 import { ChainedIn } from "../../typechain";
@@ -341,6 +340,63 @@ import { ChainedIn } from "../../typechain";
                       previousEmployees.map((e) => e.toString()),
                       "1"
                   );
+              });
+
+              it("updates employee active experience", async () => {
+                  await expect(chainedIn.addExperience(1, "2020", "2022", "Unit Tester", 1)).not.to
+                      .be.reverted;
+                  await expect(chainedIn.setCurrentActiveExperience(1, 1)).not.to.be.reverted;
+                  expect((await chainedIn.employees(1)).currentActiveExperience).to.equal(1);
+              });
+          });
+
+          describe("Skill management", () => {
+              beforeEach(async () => {
+                  await expect(
+                      chainedIn.signUp("employee@company.com", "Employee", userAccountType)
+                  ).not.to.be.reverted;
+              });
+
+              it("adds employee skill", async () => {
+                  await expect(chainedIn.addSkill(1, "Unit Testing")).not.to.be.reverted;
+
+                  const skills = await chainedIn.getEmployeeSkills(1);
+                  assert.include(
+                      skills.map((e) => e.toString()),
+                      "1"
+                  );
+
+                  const skill = await chainedIn.skills(skills[0]);
+                  assert.equal(skill.name, "Unit Testing");
+                  assert.equal(skill.isVerified, false);
+              });
+
+              it("adds employee skill certification", async () => {
+                  await expect(chainedIn.addSkill(1, "Unit Testing")).not.to.be.reverted;
+                  await expect(
+                      chainedIn.addCertification(
+                          1,
+                          "http://certification.com",
+                          "2021",
+                          "2023",
+                          "Certificate of Mocha Unit Testing",
+                          "Mocha",
+                          1
+                      )
+                  ).not.to.be.reverted;
+
+                  const certifications = await chainedIn.getSkillCertifications(1);
+                  assert.include(
+                      certifications.map((e) => e.toString()),
+                      "1"
+                  );
+
+                  const certification = await chainedIn.certifications(1);
+                  assert.equal(certification.url, "http://certification.com");
+                  assert.equal(certification.issuedOn, "2021");
+                  assert.equal(certification.validTill, "2023");
+                  assert.equal(certification.name, "Certificate of Mocha Unit Testing");
+                  assert.equal(certification.issuer, "Mocha");
               });
           });
       });
