@@ -398,5 +398,76 @@ import { ChainedIn } from "../../typechain";
                   assert.equal(certification.name, "Certificate of Mocha Unit Testing");
                   assert.equal(certification.issuer, "Mocha");
               });
+
+              it("employee endorses another employee's skill", async () => {
+                  // Set up
+                  await expect(
+                      chainedIn
+                          .connect(accounts[1])
+                          .signUp("employee2@company.com", "Employee2", userAccountType)
+                  ).not.to.be.reverted;
+                  await expect(chainedIn.addSkill(1, "Unit Testing")).not.to.be.reverted;
+
+                  // Action
+                  await expect(
+                      chainedIn.endorseSkill(1, 1, 1, "2022", "Self Endorsement")
+                  ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__SelfEndorsement");
+                  await expect(
+                      chainedIn
+                          .connect(accounts[1])
+                          .endorseSkill(2, 1, 1, "2022", "Co-worker endorsement")
+                  ).not.to.be.reverted;
+
+                  let endorsements = await chainedIn.getSkillEndorsements(1);
+                  assert.equal(endorsements[0].toString(), "1");
+
+                  let endorsement = await chainedIn.endorsements(endorsements[0]);
+                  assert.equal(endorsement.endorserId.toString(), "2");
+                  assert.equal(endorsement.date, "2022");
+                  assert.equal(endorsement.comment, "Co-worker endorsement");
+
+                  let skill = await chainedIn.skills(1);
+                  assert.equal(skill.isVerified, false);
+              });
+
+              it("manager endorses employee's skill", async () => {
+                  // Set up
+                  await expect(
+                      chainedIn
+                          .connect(accounts[1])
+                          .signUp("manager@company.com", "Manager", userAccountType)
+                  ).not.to.be.reverted;
+                  await expect(
+                      chainedIn
+                          .connect(accounts[2])
+                          .signUp("admin@company.com", "Company", companyAccountType)
+                  ).not.to.be.reverted;
+                  await expect(chainedIn.addSkill(1, "Unit Testing")).not.to.be.reverted;
+
+                  await expect(chainedIn.setCompany(1, 1)).not.to.be.reverted;
+                  await expect(chainedIn.connect(accounts[1]).setCompany(2, 1)).not.to.be.reverted;
+                  await expect(chainedIn.connect(accounts[2]).approveManager(2)).not.to.be.reverted;
+
+                  // Action
+                  await expect(
+                      chainedIn.endorseSkill(1, 1, 1, "2022", "Self Endorsement")
+                  ).to.be.revertedWithCustomError(chainedIn, "ChainedIn__SelfEndorsement");
+                  await expect(
+                      chainedIn
+                          .connect(accounts[1])
+                          .endorseSkill(2, 1, 1, "2022", "Manager endorsement")
+                  ).not.to.be.reverted;
+
+                  let endorsements = await chainedIn.getSkillEndorsements(1);
+                  assert.equal(endorsements[0].toString(), "1");
+
+                  let endorsement = await chainedIn.endorsements(endorsements[0]);
+                  assert.equal(endorsement.endorserId.toString(), "2");
+                  assert.equal(endorsement.date, "2022");
+                  assert.equal(endorsement.comment, "Manager endorsement");
+
+                  let skill = await chainedIn.skills(1);
+                  assert.equal(skill.isVerified, true);
+              });
           });
       });

@@ -12,6 +12,7 @@ error ChainedIn__EmployeeNotInCompany();
 error ChainedIn__EmployeeAlreadyManager();
 error ChainedIn__ExperienceNotForUser();
 error ChainedIn__UnknownCompany();
+error ChainedIn__SelfEndorsement();
 
 contract ChainedIn is Initializable {
     Company[] public companies;
@@ -310,18 +311,23 @@ contract ChainedIn is Initializable {
 
     function endorseSkill(
         uint256 userId,
+        uint256 endorseeId,
         uint256 skillId,
         string calldata date,
         string calldata comment
-    ) external {
+    ) external verifiedUser(userId) {
+        if (userId == endorseeId) {
+            revert ChainedIn__SelfEndorsement();
+        }
+
         Endorsement storage endorsement = endorsements.push();
-        endorsement.endorserId = addressToId[msg.sender];
+        endorsement.endorserId = userId;
         endorsement.comment = comment;
         endorsement.date = date;
         skills[skillId].endorsements.push(endorsements.length - 1);
 
-        if (employees[addressToId[msg.sender]].isManager) {
-            if (employees[addressToId[msg.sender]].companyId == employees[userId].companyId) {
+        if (employees[userId].isManager) {
+            if (employees[userId].companyId == employees[endorseeId].companyId) {
                 skills[skillId].isVerified = true;
             }
         }
