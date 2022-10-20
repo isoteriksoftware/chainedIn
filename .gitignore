@@ -103,3 +103,6 @@ contracts/test/fuzzing/crytic-export
 typechain/
 artifacts/
 cache/
+
+# OpenZeppelin
+.openzeppelin/unknown-*.json
